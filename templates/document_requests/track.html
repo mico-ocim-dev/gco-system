@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Track Request | GCO Office Management</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-slate-100 flex items-center justify-center p-4">
+  <div class="w-full max-w-lg bg-white rounded-xl shadow-lg p-8">
+    <h1 class="text-xl font-bold text-slate-800 mb-2">Track Document Request</h1>
+    <p class="text-slate-500 mb-6">Enter your tracking number to check status.</p>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="mb-4 p-3 rounded {% if messages[0][0]=='error' %}bg-red-50 text-red-700{% else %}bg-emerald-50 text-emerald-700{% endif %}">{{ messages[0][1] }}</div>
+    {% endif %}
+    {% endwith %}
+    <form method="POST" class="space-y-4">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="text" name="tracking_number" placeholder="e.g. GCO-2025-00001" required
+        class="w-full px-4 py-3 border rounded-lg" value="{{ request_obj.tracking_number if request_obj else '' }}">
+      <button type="submit" class="w-full py-3 bg-[#1E3A8A] text-white rounded-lg hover:bg-[#1e40af] min-h-[48px]">Track</button>
+    </form>
+    {% if request_obj %}
+    <div class="mt-6 p-4 bg-slate-50 rounded-lg border">
+      <p class="text-sm text-slate-500">Status</p>
+      <p class="text-lg font-semibold text-slate-800">{{ request_obj.status }}</p>
+      <p class="mt-2 text-sm">Requester: {{ request_obj.requester_name }}</p>
+      <p class="text-sm">Document: {{ request_obj.document_type }}</p>
+    </div>
+    {% endif %}
+    <p class="mt-6 text-center"><a href="{{ url_for('auth.login') }}" class="text-[#1E3A8A] hover:underline">Staff Login</a></p>
+  </div>
+</body>
+</html>

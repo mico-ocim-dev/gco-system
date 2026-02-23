@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Appointments{% endblock %}
+{% block header %}{% if current_user.is_staff %}Appointment Management{% else %}My Appointments{% endif %}{% endblock %}
+{% block content %}
+<div class="flex flex-wrap gap-4 mb-6">
+  <a href="{{ url_for('appointments.book') }}" class="px-4 py-2 bg-[#1E3A8A] text-white rounded-lg hover:bg-[#1e40af]">+ Book Appointment</a>
+</div>
+<div class="bg-white rounded-xl border border-slate-200 overflow-hidden overflow-x-auto">
+  <table class="w-full text-left min-w-[600px]">
+    <thead class="bg-slate-50 border-b border-slate-200">
+      <tr>
+        <th class="px-3 md:px-6 py-3 md:py-4 font-medium text-slate-700 text-sm">Requester</th>
+        <th class="px-3 md:px-6 py-3 md:py-4 font-medium text-slate-700 text-sm">Type</th>
+        <th class="px-3 md:px-6 py-3 md:py-4 font-medium text-slate-700 text-sm">Date</th>
+        <th class="px-3 md:px-6 py-3 md:py-4 font-medium text-slate-700 text-sm">Time</th>
+        <th class="px-3 md:px-6 py-3 md:py-4 font-medium text-slate-700 text-sm">Status</th>
+        {% if current_user.is_staff %}
+        <th class="px-3 md:px-6 py-3 md:py-4 font-medium text-slate-700 text-sm">Actions</th>
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in appointments %}
+      <tr class="border-b border-slate-100 hover:bg-slate-50/50">
+        <td class="px-3 md:px-6 py-3 md:py-4">
+          <p class="font-medium text-sm">{{ a.requester_name }}</p>
+          <p class="text-xs text-slate-500">{{ a.requester_email }}</p>
+        </td>
+        <td class="px-3 md:px-6 py-3 md:py-4 text-sm">{{ a.appointment_type }}</td>
+        <td class="px-3 md:px-6 py-3 md:py-4 text-sm">{{ a.preferred_date.strftime('%b %d, %Y') if a.preferred_date else '-' }}</td>
+        <td class="px-3 md:px-6 py-3 md:py-4 text-sm">{{ a.preferred_time or '-' }}</td>
+        <td class="px-3 md:px-6 py-3 md:py-4">
+          <span class="px-2 py-1 rounded text-xs font-medium
+            {% if a.status == 'Pending' %}bg-amber-100 text-amber-800
+            {% elif a.status == 'Approved' %}bg-emerald-100 text-emerald-800
+            {% elif a.status == 'Rejected' %}bg-red-100 text-red-800
+            {% elif a.status == 'Completed' %}bg-blue-100 text-blue-800
+            {% else %}bg-slate-100 text-slate-600{% endif %}">{{ a.status }}</span>
+        </td>
+        {% if current_user.is_staff %}
+        <td class="px-3 md:px-6 py-3 md:py-4">
+          <a href="{{ url_for('appointments.edit', aid=a.id) }}" class="text-sm px-2 py-1 bg-[#1E3A8A] text-white rounded hover:bg-[#1e40af] inline-block mb-1">Edit / Reschedule</a>
+          {% if a.status == 'Pending' %}
+          <form method="POST" action="{{ url_for('appointments.accept', aid=a.id) }}" class="inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="text-sm px-2 py-1 bg-emerald-600 text-white rounded hover:bg-emerald-700">Accept</button>
+          </form>
+          <form method="POST" action="{{ url_for('appointments.reject', aid=a.id) }}" class="inline ml-1">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="text-sm px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Reject</button>
+          </form>
+          {% else %}
+          <form method="POST" action="{{ url_for('appointments.update_status', aid=a.id) }}" class="inline-flex gap-1">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <select name="status" class="text-sm border rounded px-2 py-1">
+              <option value="Pending" {% if a.status=='Pending' %}selected{% endif %}>Pending</option>
+              <option value="Approved" {% if a.status=='Approved' %}selected{% endif %}>Approved</option>
+              <option value="Rejected" {% if a.status=='Rejected' %}selected{% endif %}>Rejected</option>
+              <option value="Completed" {% if a.status=='Completed' %}selected{% endif %}>Completed</option>
+              <option value="Cancelled" {% if a.status=='Cancelled' %}selected{% endif %}>Cancelled</option>
+            </select>
+            <button type="submit" class="text-sm px-2 py-1 bg-[#1E3A8A] text-white rounded">Update</button>
+          </form>
+          {% endif %}
+        </td>
+        {% endif %}
+      </tr>
+      {% if (a.purpose and current_user.is_staff) or a.admin_notes %}
+      <tr class="border-b border-slate-50 bg-slate-50/30">
+        <td colspan="{% if current_user.is_staff %}6{% else %}5{% endif %}" class="px-3 md:px-6 py-2 text-sm text-slate-600">
+          {% if a.purpose and current_user.is_staff %}<strong>Purpose:</strong> {{ a.purpose }}{% endif %}
+          {% if a.purpose and a.admin_notes and current_user.is_staff %} · {% endif %}
+          {% if a.admin_notes %}<strong>{% if current_user.is_staff %}Admin note:{% else %}Note:{% endif %}</strong> {{ a.admin_notes }}{% endif %}
+        </td>
+      </tr>
+      {% endif %}
+      {% else %}
+      <tr>
+        <td colspan="{% if current_user.is_staff %}6{% else %}5{% endif %}" class="px-4 md:px-6 py-12 text-center text-slate-500">No appointments yet.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

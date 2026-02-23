@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}GCO Office Management{% endblock %} | LSPU Sta. Cruz</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+  <style>
+    :root { --sidebar-width: 260px; --lspu-blue: #1E3A8A; --lspu-yellow: #FACC15; }
+    body { font-family: 'DM Sans', system-ui, sans-serif; }
+    .sidebar {
+      width: var(--sidebar-width); max-width: 85vw; height: 100vh;
+      display: flex; flex-direction: column;
+      background: linear-gradient(180deg, #1E3A8A 0%, #0f172a 100%);
+      transition: transform 0.25s ease;
+    }
+    .sidebar-nav { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    @media (max-width: 767px) {
+      .sidebar { transform: translateX(-100%); }
+      body.sidebar-open .sidebar { transform: translateX(0); }
+      body.sidebar-open .sidebar-overlay { opacity: 1; pointer-events: auto; }
+    }
+    @media (min-width: 768px) {
+      .sidebar { transform: translateX(0); }
+    }
+    .sidebar-overlay {
+      position: fixed; inset: 0; z-index: 35; background: rgba(0,0,0,0.5);
+      opacity: 0; pointer-events: none; transition: opacity 0.25s ease;
+    }
+    @media (min-width: 768px) { .sidebar-overlay { display: none; } }
+    .nav-link { transition: all 0.2s; }
+    .nav-link:hover { background: rgba(250,204,21,0.15); }
+    .nav-link.active { background: var(--lspu-yellow); color: #1E3A8A !important; font-weight: 600; }
+    .btn-primary { background: var(--lspu-blue); }
+    .btn-primary:hover { background: #1e40af; }
+    .main-bg { position: relative; min-height: 100vh; }
+    .main-bg::before {
+      content: ''; position: fixed; inset: 0; z-index: -1;
+      background: url("{{ url_for('static', filename='img/lspu-banner.jpg') }}") center/cover no-repeat;
+      filter: blur(14px) brightness(0.4); transform: scale(1.08);
+    }
+    .main-bg::after {
+      content: ''; position: fixed; inset: 0; z-index: -1;
+      background: linear-gradient(135deg, rgba(30,58,138,0.06) 0%, rgba(255,255,255,0.97) 50%);
+    }
+    .tap-target { min-height: 44px; min-width: 44px; }
+  </style>
+</head>
+<body class="text-[#1E3A8A]" id="app-body">
+  <div class="sidebar-overlay md:hidden" id="sidebar-overlay" aria-hidden="true"></div>
+  <div class="flex main-bg">
+    <aside class="sidebar fixed left-0 top-0 z-40 text-white shrink-0" id="sidebar" aria-label="Main navigation">
+      <div class="p-4 md:p-6 border-b border-white/20 flex items-center justify-between md:block shrink-0">
+        <div class="flex-1 md:block">
+        <img src="{{ url_for('static', filename='img/lspu-logo.jpg') }}" alt="LSPU" class="w-12 h-12 md:w-14 md:h-14 mx-auto rounded-full object-cover ring-2 ring-[#FACC15]/40 mb-2 md:mb-3">
+        <h1 class="text-lg font-bold text-center">GCO System</h1>
+        <p class="text-xs text-white/80 mt-1 text-center">Guidance & Counseling Office<br>LSPU Sta. Cruz</p>
+        <p class="text-[10px] text-[#FACC15]/90 mt-2 text-center font-medium">Integrity. Professionalism. Innovation.</p>
+        </div>
+        <button type="button" class="md:hidden tap-target p-2 -m-2 rounded-lg hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-[#FACC15]" id="sidebar-close" aria-label="Close menu">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <nav class="sidebar-nav p-3 space-y-1">
+        {% if current_user.is_staff %}
+        <a href="{{ url_for('dashboard.index') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg {% if request.endpoint == 'dashboard.index' %}active{% endif %}">
+          <span>📊</span> Dashboard
+        </a>
+        <a href="{{ url_for('qr_resources.manage') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg {% if 'qr_resources' in request.endpoint %}active{% endif %}">
+          <span>📱</span> QR Forms
+        </a>
+        {% else %}
+        <a href="{{ url_for('user_dashboard.index') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg {% if request.endpoint == 'user_dashboard.index' %}active{% endif %}">
+          <span>📊</span> Dashboard
+        </a>
+        {% endif %}
+        <a href="{{ url_for('document_requests.index') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg {% if 'document_requests' in request.endpoint %}active{% endif %}">
+          <span>📄</span> {% if current_user.is_staff %}Document Requests{% else %}My Requests{% endif %}
+        </a>
+        <a href="{{ url_for('appointments.index') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg {% if 'appointments' in request.endpoint %}active{% endif %}">
+          <span>📅</span> {% if current_user.is_staff %}Appointments{% else %}My Appointments{% endif %}
+        </a>
+        {% if current_user.is_staff %}
+        <a href="{{ url_for('logbook.index') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg {% if 'logbook' in request.endpoint %}active{% endif %}">
+          <span>📋</span> Logbook
+        </a>
+        <a href="{{ url_for('tickets.index') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg {% if 'tickets' in request.endpoint %}active{% endif %}">
+          <span>🎫</span> Help Desk
+        </a>
+        <a href="{{ url_for('surveys.index') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg {% if 'surveys' in request.endpoint %}active{% endif %}">
+          <span>📝</span> Surveys
+        </a>
+        <a href="{{ url_for('reports.index') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg {% if 'reports' in request.endpoint %}active{% endif %}">
+          <span>📑</span> Reports
+        </a>
+        {% endif %}
+        {% if current_user.is_staff %}
+        <a href="{{ url_for('appointments.book') }}" class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg">
+          <span>➕</span> Book Appointment
+        </a>
+        {% endif %}
+      </nav>
+    </aside>
+    <main class="flex-1 min-h-screen ml-0 md:ml-[var(--sidebar-width)]">
+      <header class="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-[#1E3A8A]/20 px-4 md:px-8 py-3 md:py-4 flex items-center gap-3">
+        <button type="button" class="md:hidden tap-target p-2 -m-2 rounded-lg text-[#1E3A8A] hover:bg-[#1E3A8A]/10 focus:outline-none focus:ring-2 focus:ring-[#FACC15]" id="sidebar-toggle" aria-label="Open menu">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <h2 class="text-base md:text-xl font-semibold text-[#1E3A8A] truncate flex-1">{% block header %}{% endblock %}</h2>
+        <div class="flex items-center gap-2 md:gap-4 shrink-0">
+          {% if current_user.is_staff %}
+          <a href="{{ url_for('document_requests.track') }}" class="text-sm text-[#1E3A8A] hover:text-[#FACC15] font-medium tap-target inline-flex items-center gap-1.5">
+            <span aria-hidden="true">🔍</span> Track Request
+          </a>
+          {% endif %}
+          {% if current_user.is_authenticated %}
+          <span class="text-xs md:text-sm text-[#1E3A8A]/70 truncate max-w-[100px] md:max-w-none">{{ current_user.full_name or current_user.username }} ({{ current_user.role }})</span>
+          <a href="{{ url_for('auth.logout') }}" class="text-sm text-[#1E3A8A] hover:text-[#FACC15] font-medium tap-target inline-flex items-center">Logout</a>
+          {% endif %}
+        </div>
+      </header>
+      <div class="p-4 md:p-8">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="mb-6 space-y-2">
+          {% for category, msg in messages %}
+          <div class="p-4 rounded-lg {% if category == 'error' %}bg-red-50 text-red-700 border border-red-200{% elif category == 'success' %}bg-[#FACC15]/20 text-[#1E3A8A] border border-[#FACC15]/50{% else %}bg-[#1E3A8A]/5 text-[#1E3A8A] border border-[#1E3A8A]/20{% endif %}">
+            {{ msg }}
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+  </div>
+  <script>
+    (function() {
+      var body = document.getElementById('app-body');
+      var overlay = document.getElementById('sidebar-overlay');
+      var sidebar = document.getElementById('sidebar');
+      function openSidebar() { body.classList.add('sidebar-open'); }
+      function closeSidebar() { body.classList.remove('sidebar-open'); }
+      function toggleSidebar() { body.classList.toggle('sidebar-open'); }
+      document.getElementById('sidebar-toggle').addEventListener('click', toggleSidebar);
+      if (document.getElementById('sidebar-close')) document.getElementById('sidebar-close').addEventListener('click', closeSidebar);
+      overlay.addEventListener('click', closeSidebar);
+      sidebar.querySelectorAll('a.nav-link').forEach(function(a) { a.addEventListener('click', closeSidebar); });
+    })();
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

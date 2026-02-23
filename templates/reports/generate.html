@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Generate Report{% endblock %}
+{% block header %}Generate Monthly Report{% endblock %}
+{% block content %}
+<p class="text-slate-600 mb-4">Generate one report for the selected month with all transactions (document requests, tickets, logbook, appointments).</p>
+<form method="POST" class="max-w-xl space-y-4">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="grid grid-cols-2 gap-4">
+    <div>
+      <label for="year" class="block text-sm font-medium text-slate-700 mb-1">Year</label>
+      <input type="number" id="year" name="year" value="{{ request.form.get('year') or now.year }}" min="2020" max="2030" class="w-full px-4 py-2 border rounded-lg">
+    </div>
+    <div>
+      <label for="month" class="block text-sm font-medium text-slate-700 mb-1">Month</label>
+      <select id="month" name="month" class="w-full px-4 py-2 border rounded-lg">
+        {% for m in range(1, 13) %}
+        <option value="{{ m }}" {% if m == now.month %}selected{% endif %}>{{ m }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+  <div class="flex gap-3">
+    <button type="submit" class="px-6 py-2 bg-[#1E3A8A] text-white rounded-lg hover:bg-[#1e40af]">Generate report</button>
+    <a href="{{ url_for('reports.index') }}" class="px-6 py-2 border rounded-lg hover:bg-slate-50">Cancel</a>
+  </div>
+</form>
+{% endblock %}

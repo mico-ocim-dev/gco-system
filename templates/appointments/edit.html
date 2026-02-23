@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Edit Appointment{% endblock %}
+{% block header %}Edit / Reschedule Appointment{% endblock %}
+{% block content %}
+<div class="max-w-xl">
+  <div class="mb-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
+    <p class="font-medium text-slate-800">{{ appointment.requester_name }}</p>
+    <p class="text-sm text-slate-500">{{ appointment.requester_email }} · {{ appointment.appointment_type }}</p>
+    {% if appointment.purpose %}
+    <p class="text-sm text-slate-600 mt-1">Purpose: {{ appointment.purpose }}</p>
+    {% endif %}
+  </div>
+  <form method="POST" class="space-y-4">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div>
+      <label for="preferred_date" class="block text-sm font-medium text-slate-700 mb-1">Scheduled Date *</label>
+      <input type="date" id="preferred_date" name="preferred_date" required
+        value="{{ appointment.preferred_date.strftime('%Y-%m-%d') if appointment.preferred_date else '' }}"
+        class="w-full px-4 py-2 border rounded-lg">
+    </div>
+    <div>
+      <label for="preferred_time" class="block text-sm font-medium text-slate-700 mb-1">Scheduled Time</label>
+      <select id="preferred_time" name="preferred_time" class="w-full px-4 py-2 border rounded-lg">
+        {% for s in slots %}
+        <option value="{{ s }}" {% if appointment.preferred_time == s %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="status" class="block text-sm font-medium text-slate-700 mb-1">Status</label>
+      <select id="status" name="status" class="w-full px-4 py-2 border rounded-lg">
+        <option value="Pending" {% if appointment.status=='Pending' %}selected{% endif %}>Pending</option>
+        <option value="Approved" {% if appointment.status=='Approved' %}selected{% endif %}>Approved</option>
+        <option value="Rejected" {% if appointment.status=='Rejected' %}selected{% endif %}>Rejected</option>
+        <option value="Completed" {% if appointment.status=='Completed' %}selected{% endif %}>Completed</option>
+        <option value="Cancelled" {% if appointment.status=='Cancelled' %}selected{% endif %}>Cancelled</option>
+      </select>
+    </div>
+    <div>
+      <label for="admin_notes" class="block text-sm font-medium text-slate-700 mb-1">Admin Notes</label>
+      <textarea id="admin_notes" name="admin_notes" rows="4" placeholder="e.g. Counselor not available at requested time. Rescheduled to new date. Please confirm with client."
+        class="w-full px-4 py-2 border rounded-lg">{{ appointment.admin_notes or '' }}</textarea>
+      <p class="text-xs text-slate-500 mt-1">Use this to note unavailability, reschedule reasons, or messages for the client.</p>
+    </div>
+    <div class="flex gap-3">
+      <button type="submit" class="px-6 py-2 bg-[#1E3A8A] text-white rounded-lg hover:bg-[#1e40af]">Save Changes</button>
+      <a href="{{ url_for('appointments.index') }}" class="px-6 py-2 border rounded-lg hover:bg-slate-50">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

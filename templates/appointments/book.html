@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-xl mx-auto">
+  <h1 class="text-xl font-bold text-slate-800 mb-1">Book Appointment</h1>
+  <p class="text-slate-500 text-sm mb-6">Online scheduling - no manual booking needed.</p>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="mb-4 space-y-2">
+    {% for category, msg in messages %}
+    <div class="p-3 rounded-lg {% if category == 'error' %}bg-red-50 text-red-700{% else %}bg-emerald-50 text-emerald-700{% endif %}">{{ msg }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% endwith %}
+  <form method="POST" action="{{ url_for('appointments.book') }}" class="space-y-4">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div>
+      <label for="requester_name" class="block text-sm font-medium text-slate-700 mb-1">Full Name *</label>
+      <input type="text" id="requester_name" name="requester_name" required
+        value="{{ current_user.full_name or current_user.username }}"
+        class="w-full px-4 py-2 border rounded-lg">
+    </div>
+    <div>
+      <label for="requester_email" class="block text-sm font-medium text-slate-700 mb-1">Email *</label>
+      <input type="email" id="requester_email" name="requester_email" required
+        value="{{ current_user.email }}"
+        class="w-full px-4 py-2 border rounded-lg">
+    </div>
+    <div>
+      <label for="requester_phone" class="block text-sm font-medium text-slate-700 mb-1">Phone</label>
+      <input type="text" id="requester_phone" name="requester_phone" placeholder="Optional"
+        class="w-full px-4 py-2 border rounded-lg">
+    </div>
+    <div>
+      <label for="appointment_type" class="block text-sm font-medium text-slate-700 mb-1">Appointment Type *</label>
+      <select id="appointment_type" name="appointment_type" required class="w-full px-4 py-2 border rounded-lg">
+        <option value="">-- Select --</option>
+        {% for t in types %}
+        <option value="{{ t }}">{{ t }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="purpose" class="block text-sm font-medium text-slate-700 mb-1">Purpose / Reason</label>
+      <input type="text" id="purpose" name="purpose" placeholder="e.g. Counseling session, Document inquiry"
+        class="w-full px-4 py-2 border rounded-lg">
+    </div>
+    <div>
+      <label for="preferred_date" class="block text-sm font-medium text-slate-700 mb-1">Preferred Date *</label>
+      <input type="date" id="preferred_date" name="preferred_date" required
+        min="{{ now.strftime('%Y-%m-%d') }}"
+        class="w-full px-4 py-2 border rounded-lg">
+    </div>
+    <div>
+      <label for="preferred_time" class="block text-sm font-medium text-slate-700 mb-1">Preferred Time</label>
+      <select id="preferred_time" name="preferred_time" class="w-full px-4 py-2 border rounded-lg">
+        {% for s in slots %}
+        <option value="{{ s }}">{{ s }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="w-full py-3 bg-[#1E3A8A] hover:bg-[#1e40af] text-white font-medium rounded-lg">Submit Booking Request</button>
+  </form>
+  <p class="mt-4">
+    <a href="{{ url_for('appointments.index') }}" class="text-[#1E3A8A] hover:underline">← Back to My Appointments</a>
+  </p>
+</div>
+{% endblock %}

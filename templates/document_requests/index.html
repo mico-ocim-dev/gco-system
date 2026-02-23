@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Document Requests{% endblock %}
+{% block header %}Document Request & Tracking{% endblock %}
+{% block content %}
+<div class="flex flex-wrap gap-4 mb-6">
+  <a href="{{ url_for('document_requests.create') }}" class="px-4 py-2 bg-[#1E3A8A] text-white rounded-lg hover:bg-[#1e40af]">+ New Request</a>
+  <a href="{{ url_for('document_requests.track') }}" class="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50">Track Request</a>
+  {% if current_user.is_staff %}
+  <a href="{{ url_for('document_requests.import_requests') }}" class="px-4 py-2 bg-[#1E3A8A] text-white rounded-lg hover:bg-[#1e40af]">Import Excel/CSV</a>
+  <a href="{{ url_for('document_requests.export_requests') }}" class="px-4 py-2 bg-[#1E3A8A] text-white rounded-lg hover:bg-[#1e40af]">Export Excel</a>
+  {% endif %}
+</div>
+<div class="bg-white rounded-xl border border-slate-200 overflow-hidden overflow-x-auto">
+  <table class="w-full text-left min-w-[640px]">
+    <thead class="bg-slate-50 border-b border-slate-200">
+      <tr>
+        <th class="px-3 md:px-6 py-3 md:py-4 font-medium text-slate-700 text-sm">Tracking #</th>
+        <th class="px-3 md:px-6 py-3 md:py-4 font-medium text-slate-700 text-sm">Requester</th>
+        <th class="px-3 md:px-6 py-3 md:py-4 font-medium text-slate-700 text-sm">Document Type</th>
+        <th class="px-3 md:px-6 py-3 md:py-4 font-medium text-slate-700 text-sm">Status</th>
+        <th class="px-3 md:px-6 py-3 md:py-4 font-medium text-slate-700 text-sm">Requested</th>
+        <th class="px-3 md:px-6 py-3 md:py-4 font-medium text-slate-700 text-sm">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in requests %}
+      <tr class="border-b border-slate-100 hover:bg-slate-50/50">
+        <td class="px-3 md:px-6 py-3 md:py-4 font-mono text-sm">{{ r.tracking_number }}</td>
+        <td class="px-3 md:px-6 py-3 md:py-4 text-sm">{{ r.requester_name }}</td>
+        <td class="px-3 md:px-6 py-3 md:py-4 text-sm">{{ r.document_type }}</td>
+        <td class="px-3 md:px-6 py-3 md:py-4"><span class="px-2 py-1 rounded text-xs font-medium
+          {% if r.status == 'Pending' %}bg-amber-100 text-amber-800
+          {% elif r.status == 'Processing' %}bg-blue-100 text-blue-800
+          {% elif r.status == 'Ready' %}bg-emerald-100 text-emerald-800
+          {% elif r.status == 'Claimed' %}bg-slate-100 text-slate-800
+          {% else %}bg-slate-100 text-slate-600{% endif %}">{{ r.status }}</span></td>
+        <td class="px-3 md:px-6 py-3 md:py-4 text-sm text-slate-500">{{ r.requested_at.strftime('%Y-%m-%d %H:%M') if r.requested_at else '-' }}</td>
+        <td class="px-3 md:px-6 py-3 md:py-4">
+          {% if current_user.is_staff %}
+          <form method="POST" action="{{ url_for('document_requests.update_status', req_id=r.id) }}" class="inline-flex flex-wrap gap-2">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <select name="status" class="text-sm border rounded px-2 py-1">
+              <option value="Pending" {% if r.status=='Pending' %}selected{% endif %}>Pending</option>
+              <option value="Processing" {% if r.status=='Processing' %}selected{% endif %}>Processing</option>
+              <option value="Ready" {% if r.status=='Ready' %}selected{% endif %}>Ready</option>
+              <option value="Claimed" {% if r.status=='Claimed' %}selected{% endif %}>Claimed</option>
+              <option value="Cancelled" {% if r.status=='Cancelled' %}selected{% endif %}>Cancelled</option>
+            </select>
+            <input type="text" name="notes" placeholder="Notes" class="text-sm border rounded px-2 py-1 w-24">
+            <button type="submit" class="text-sm px-2 py-1 bg-[#1E3A8A] text-white rounded">Update</button>
+          </form>
+          {% else %}
+          <span class="text-slate-400 text-sm">—</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="px-4 md:px-6 py-12 text-center text-slate-500">No requests yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

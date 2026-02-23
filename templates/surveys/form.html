@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}New Survey{% endblock %}
+{% block header %}Create Survey{% endblock %}
+{% block content %}
+<form method="POST" class="max-w-xl space-y-4" id="survey-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div>
+    <label for="title" class="block text-sm font-medium text-slate-700 mb-1">Survey Title *</label>
+    <input type="text" id="title" name="title" required class="w-full px-4 py-2 border rounded-lg">
+  </div>
+  <div>
+    <label for="description" class="block text-sm font-medium text-slate-700 mb-1">Description</label>
+    <textarea id="description" name="description" rows="2" class="w-full px-4 py-2 border rounded-lg"></textarea>
+  </div>
+  <div>
+    <label class="block text-sm font-medium text-slate-700 mb-2">Questions</label>
+    <div id="questions" class="space-y-3">
+      <div class="flex gap-2 items-center">
+        <input type="text" name="question_text" placeholder="Question text" class="flex-1 px-4 py-2 border rounded-lg">
+        <select name="question_type" class="px-4 py-2 border rounded-lg w-32">
+          <option value="rating">Rating</option>
+          <option value="text">Text</option>
+        </select>
+      </div>
+    </div>
+    <button type="button" onclick="addQuestion()" class="mt-2 text-sm text-[#1E3A8A] hover:underline">+ Add Question</button>
+  </div>
+  <div class="flex gap-3">
+    <button type="submit" class="px-6 py-2 bg-[#1E3A8A] text-white rounded-lg hover:bg-[#1e40af]">Create Survey</button>
+    <a href="{{ url_for('surveys.index') }}" class="px-6 py-2 border rounded-lg hover:bg-slate-50">Cancel</a>
+  </div>
+</form>
+<script>
+function addQuestion() {
+  const div = document.createElement('div');
+  div.className = 'flex gap-2 items-center';
+  div.innerHTML = '<input type="text" name="question_text" placeholder="Question text" class="flex-1 px-4 py-2 border rounded-lg"><select name="question_type" class="px-4 py-2 border rounded-lg w-32"><option value="rating">Rating</option><option value="text">Text</option></select>';
+  document.getElementById('questions').appendChild(div);
+}
+</script>
+{% endblock %}

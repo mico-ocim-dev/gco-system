@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resend verification | GCO Office Management</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --lspu-blue: #1E3A8A; --lspu-yellow: #FACC15; }
+    body { font-family: 'DM Sans', sans-serif; }
+    .login-bg { position: fixed; inset: 0; background: url("{{ url_for('static', filename='img/lspu-banner.jpg') }}") center/cover no-repeat; filter: blur(12px) brightness(0.5); transform: scale(1.05); }
+    .login-overlay { position: fixed; inset: 0; background: linear-gradient(135deg, rgba(30,58,138,0.85) 0%, rgba(15,23,42,0.9) 50%, rgba(30,58,138,0.8) 100%); }
+    .login-card { box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4); border: 1px solid rgba(250,204,21,0.2); }
+    .btn-lspu { background: var(--lspu-yellow); color: var(--lspu-blue); }
+    .btn-lspu:hover { background: #FDE047; color: var(--lspu-blue); }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+  <div class="login-bg"></div>
+  <div class="login-overlay"></div>
+  <div class="w-full max-w-md relative z-10">
+    <div class="login-card bg-white/95 backdrop-blur rounded-2xl p-8">
+      <h1 class="text-xl font-bold text-[#1E3A8A] mb-1">Resend verification email</h1>
+      <p class="text-[#1E3A8A]/80 text-sm mb-6">Enter the Gmail you used to register. We’ll send a new verification link.</p>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div class="mb-4 space-y-2">
+        {% for category, msg in messages %}
+        <div class="p-3 rounded-lg {% if category == 'error' %}bg-red-50 text-red-700 border border-red-200{% else %}bg-[#FACC15]/20 text-[#1E3A8A] border border-[#FACC15]/40{% endif %}">{{ msg }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% endwith %}
+      <form method="POST" action="{{ url_for('auth.resend_verification') }}" class="space-y-5">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div>
+          <label for="email" class="block text-sm font-medium text-[#1E3A8A] mb-2">Gmail address</label>
+          <input type="email" id="email" name="email" required placeholder="yourname@gmail.com"
+            value="{{ request.args.get('email', '') }}"
+            class="w-full px-4 py-3 rounded-lg border-2 border-[#1E3A8A]/30 focus:ring-2 focus:ring-[#FACC15] focus:border-[#1E3A8A] transition">
+        </div>
+        <button type="submit" class="btn-lspu w-full py-3 font-bold rounded-lg transition min-h-[48px]">Send verification link</button>
+      </form>
+      <p class="mt-6 text-center text-sm text-[#1E3A8A]/80">
+        <a href="{{ url_for('auth.login') }}" class="font-medium text-[#1E3A8A] hover:text-[#FACC15] hover:underline">Back to login</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>

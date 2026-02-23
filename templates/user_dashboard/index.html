@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block header %}Quick Access – Forms & Links{% endblock %}
+{% block content %}
+<p class="text-slate-600 mb-6">Scan the QR codes below to access forms (NSSIB, Excuse Slip, etc.).</p>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+  {% for r in resources %}
+  <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition text-center">
+    <h3 class="font-semibold text-slate-800 mb-2">{{ r.name }}</h3>
+    {% if r.description %}
+    <p class="text-sm text-slate-500 mb-4">{{ r.description }}</p>
+    {% endif %}
+    <a href="{{ url_for('qr_resources.serve_qr_image', filename=r.image_filename) }}" target="_blank" class="block">
+      <img src="{{ url_for('qr_resources.serve_qr_image', filename=r.image_filename) }}"
+           alt="{{ r.name }}"
+           class="mx-auto max-w-[180px] w-full h-auto rounded-lg border border-slate-200">
+    </a>
+    <p class="text-xs text-slate-400 mt-3">Scan to open form</p>
+    {% if r.form_url %}
+    <a href="{{ r.form_url }}" target="_blank" rel="noopener" class="text-sm text-[#1E3A8A] hover:underline mt-2 inline-block">Open link →</a>
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="col-span-full text-center py-12 text-slate-500">
+    <p>No forms available yet. Admin will add QR codes soon.</p>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

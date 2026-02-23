@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block header %}Office Monitoring Dashboard{% endblock %}
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+  <div class="bg-white/90 backdrop-blur rounded-xl border border-[#1E3A8A]/20 p-6 shadow-sm">
+    <p class="text-sm text-[#1E3A8A]/70 font-medium">Pending Requests</p>
+    <p id="stat-pending" class="text-3xl font-bold text-[#1E3A8A] mt-2">-</p>
+  </div>
+  <div class="bg-white/90 backdrop-blur rounded-xl border border-[#1E3A8A]/20 p-6 shadow-sm">
+    <p class="text-sm text-[#1E3A8A]/70 font-medium">Open Tickets</p>
+    <p id="stat-tickets" class="text-3xl font-bold text-[#1E3A8A] mt-2">-</p>
+  </div>
+  <div class="bg-white/90 backdrop-blur rounded-xl border border-[#1E3A8A]/20 p-6 shadow-sm">
+    <p class="text-sm text-[#1E3A8A]/70 font-medium">Completed Requests</p>
+    <p id="stat-completed" class="text-3xl font-bold text-[#1E3A8A] mt-2">-</p>
+  </div>
+  <div class="bg-white/90 backdrop-blur rounded-xl border border-[#1E3A8A]/20 p-6 shadow-sm">
+    <p class="text-sm text-[#1E3A8A]/70 font-medium">Visitors Today</p>
+    <p id="stat-today" class="text-3xl font-bold text-[#1E3A8A] mt-2">-</p>
+  </div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div class="bg-white/90 backdrop-blur rounded-xl border border-[#1E3A8A]/20 p-6 shadow-sm">
+    <h3 class="font-semibold text-[#1E3A8A] mb-4">Request Status Distribution</h3>
+    <canvas id="chart-status" height="200"></canvas>
+  </div>
+  <div class="bg-white/90 backdrop-blur rounded-xl border border-[#1E3A8A]/20 p-6 shadow-sm">
+    <h3 class="font-semibold text-[#1E3A8A] mb-4">Monthly Trend (Requests)</h3>
+    <canvas id="chart-trend" height="200"></canvas>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  (function() {
+    fetch('/api/dashboard/stats').then(r=>r.json()).then(d=>{
+      document.getElementById('stat-pending').textContent = d.pending_requests;
+      document.getElementById('stat-tickets').textContent = d.open_tickets;
+      document.getElementById('stat-completed').textContent = d.completed_requests;
+      document.getElementById('stat-today').textContent = d.visitors_today;
+    }).catch(()=>{});
+    fetch('/api/dashboard/request-status-distribution').then(r=>r.json()).then(d=>{
+      new Chart(document.getElementById('chart-status'), {
+        type: 'doughnut',
+        data: { labels: d.labels, datasets: [{ data: d.data, backgroundColor: ['#1E3A8A','#FACC15','#4b5563','#f59e0b','#ef4444'] }] }
+      });
+    }).catch(()=>{});
+    fetch('/api/dashboard/monthly-trend').then(r=>r.json()).then(d=>{
+      new Chart(document.getElementById('chart-trend'), {
+        type: 'line',
+        data: { labels: d.labels, datasets: [{ label: 'Requests', data: d.data, borderColor: '#1E3A8A', backgroundColor: 'rgba(30,58,138,0.1)', fill: true, tension: 0.3 }] }
+      });
+    }).catch(()=>{});
+  })();
+</script>
+{% endblock %}

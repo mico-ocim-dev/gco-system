@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Reports{% endblock %}
+{% block header %}Monthly Reports{% endblock %}
+{% block content %}
+<div class="mb-6">
+  <a href="{{ url_for('reports.generate') }}" class="px-4 py-2 bg-[#1E3A8A] text-white rounded-lg hover:bg-[#1e40af]">Generate Report</a>
+</div>
+<div class="bg-white rounded-xl border border-slate-200 overflow-hidden overflow-x-auto">
+  <table class="w-full text-left min-w-[400px]">
+    <thead class="bg-slate-50 border-b border-slate-200">
+      <tr>
+        <th class="px-6 py-4 font-medium text-slate-700">Report</th>
+        <th class="px-6 py-4 font-medium text-slate-700">Generated</th>
+        <th class="px-6 py-4 font-medium text-slate-700">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in reports %}
+      <tr class="border-b border-slate-100 hover:bg-slate-50/50">
+        <td class="px-6 py-4">{{ r.report_year }}-{{ '%02d'|format(r.report_month) }}</td>
+        <td class="px-6 py-4">{{ r.generated_at.strftime('%Y-%m-%d %H:%M') if r.generated_at else '-' }}</td>
+        <td class="px-6 py-4">
+          <a href="{{ url_for('reports.download', rid=r.id, format='pdf') }}" class="text-[#1E3A8A] hover:underline">PDF</a>
+          <span class="text-slate-300 mx-1">|</span>
+          <a href="{{ url_for('reports.download', rid=r.id, format='csv') }}" class="text-[#1E3A8A] hover:underline">CSV</a>
+          <span class="text-slate-300 mx-1">|</span>
+          <a href="{{ url_for('reports.download', rid=r.id, format='xlsx') }}" class="text-[#1E3A8A] hover:underline">Excel</a>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="3" class="px-6 py-12 text-center text-slate-500">No reports yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

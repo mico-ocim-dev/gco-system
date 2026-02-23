@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Help Desk{% endblock %}
+{% block header %}Help Desk / Ticketing{% endblock %}
+{% block content %}
+<div class="flex flex-wrap gap-4 mb-6">
+  <a href="{{ url_for('tickets.create') }}" class="px-4 py-2 bg-[#1E3A8A] text-white rounded-lg hover:bg-[#1e40af]">+ New Ticket</a>
+  <a href="{{ url_for('tickets.import_tickets') }}" class="px-4 py-2 bg-[#1E3A8A] text-white rounded-lg hover:bg-[#1e40af]">Import Excel/CSV</a>
+  <a href="{{ url_for('tickets.export_tickets') }}" class="px-4 py-2 bg-[#1E3A8A] text-white rounded-lg hover:bg-[#1e40af]">Export Excel</a>
+</div>
+<div class="bg-white rounded-xl border border-slate-200 overflow-hidden overflow-x-auto">
+  <table class="w-full text-left min-w-[640px]">
+    <thead class="bg-slate-50 border-b border-slate-200">
+      <tr>
+        <th class="px-6 py-4 font-medium text-slate-700">Ticket #</th>
+        <th class="px-6 py-4 font-medium text-slate-700">Subject</th>
+        <th class="px-6 py-4 font-medium text-slate-700">Requester</th>
+        <th class="px-6 py-4 font-medium text-slate-700">Status</th>
+        <th class="px-6 py-4 font-medium text-slate-700">Priority</th>
+        <th class="px-6 py-4 font-medium text-slate-700">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in tickets %}
+      <tr class="border-b border-slate-100 hover:bg-slate-50/50">
+        <td class="px-6 py-4 font-mono text-sm">{{ t.ticket_number }}</td>
+        <td class="px-6 py-4">{{ t.subject }}</td>
+        <td class="px-6 py-4">{{ t.requester_name }}</td>
+        <td class="px-6 py-4"><span class="px-2 py-1 rounded text-xs font-medium
+          {% if t.status == 'Open' %}bg-amber-100 text-amber-800
+          {% elif t.status == 'In Progress' %}bg-blue-100 text-blue-800
+          {% elif t.status == 'Resolved' %}bg-emerald-100 text-emerald-800
+          {% else %}bg-slate-100 text-slate-600{% endif %}">{{ t.status }}</span></td>
+        <td class="px-6 py-4">{{ t.priority }}</td>
+        <td class="px-6 py-4">
+          <form method="POST" action="{{ url_for('tickets.update_ticket', tid=t.id) }}" class="inline-flex gap-2 items-center">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <select name="status" class="text-sm border rounded px-2 py-1">
+              <option value="Open" {% if t.status=='Open' %}selected{% endif %}>Open</option>
+              <option value="In Progress" {% if t.status=='In Progress' %}selected{% endif %}>In Progress</option>
+              <option value="Resolved" {% if t.status=='Resolved' %}selected{% endif %}>Resolved</option>
+              <option value="Closed" {% if t.status=='Closed' %}selected{% endif %}>Closed</option>
+            </select>
+            <input type="text" name="assigned_to" placeholder="Assign to" value="{{ t.assigned_to or '' }}" class="text-sm border rounded px-2 py-1 w-28">
+            <button type="submit" class="text-sm px-2 py-1 bg-[#1E3A8A] text-white rounded">Update</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="px-6 py-12 text-center text-slate-500">No tickets yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

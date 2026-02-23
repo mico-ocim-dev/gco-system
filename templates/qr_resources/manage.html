@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}QR Resources{% endblock %}
+{% block header %}QR Code / Form Management{% endblock %}
+{% block content %}
+<div class="mb-6">
+  <a href="{{ url_for('qr_resources.add') }}" class="px-4 py-2 bg-[#1E3A8A] text-white rounded-lg hover:bg-[#1e40af]">+ Add QR / Form</a>
+</div>
+<p class="text-slate-600 mb-4">Upload QR code images (NSSIB, Excuse Slip, etc.) to show on the user dashboard. You can change or add anytime.</p>
+<div class="grid gap-4">
+  {% for r in resources %}
+  <div class="bg-white rounded-xl border border-slate-200 p-6 flex flex-wrap items-center gap-6">
+    <img src="{{ url_for('qr_resources.serve_qr_image', filename=r.image_filename) }}"
+         alt="{{ r.name }}"
+         class="w-24 h-24 object-contain border rounded-lg">
+    <div class="flex-1 min-w-0">
+      <h3 class="font-semibold text-slate-800">{{ r.name }}</h3>
+      {% if r.description %}<p class="text-sm text-slate-500">{{ r.description }}</p>{% endif %}
+      {% if r.form_url %}<p class="text-xs text-[#1E3A8A] truncate">{{ r.form_url }}</p>{% endif %}
+    </div>
+    <div class="flex gap-2">
+      <a href="{{ url_for('qr_resources.edit', rid=r.id) }}" class="px-4 py-2 border rounded-lg hover:bg-slate-50">Edit</a>
+      <form method="POST" action="{{ url_for('qr_resources.delete', rid=r.id) }}" onsubmit="return confirm('Delete this?');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50">Delete</button>
+      </form>
+    </div>
+  </div>
+  {% else %}
+  <p class="py-12 text-center text-slate-500">No QR resources yet. Add one to get started.</p>
+  {% endfor %}
+</div>
+{% endblock %}
